@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="OpsFlow.Api/OpsFlow.Api.csproj" Id="96bdcf78-8c9f-49c4-9cc6-0896f0d700da" />
+  <Project Path="OpsFlow.Tests/OpsFlow.Tests.csproj" Id="e509d9a9-0e1f-44ee-9d6c-d5476b08a38c" />
+</Solution>

@@ -1,0 +1,22 @@
+# Env — never commit secrets
+.env.*
+
+# .NET
+**/bin/
+**/obj/
+*.user
+.vs/
+*.suo
+appsettings.*.json
+
+# Node / Frontend
+node_modules/
+dist/
+.vite/
+
+# Docker volumes
+postgres_data/
+
+# OS
+.DS_Store
+Thumbs.db
