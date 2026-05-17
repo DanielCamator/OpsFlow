@@ -1,9 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using OpsFlow.Api.Data;
+using OpsFlow.Infrastructure.Data;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
 
 builder.Services.AddCors(options =>
 {
@@ -13,23 +12,27 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod());
 });
 
-// PostgreSQL — connection string from env / appsettings
-var connectionString = builder.Configuration.GetConnectionString("Default");
-builder.Services.AddDbContext<AppDbContext>(opts =>
-    opts.UseNpgsql(connectionString));
+builder.Services.AddDbContext<OpsFlowDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<OpsFlowDbContext>();
+    DbInitializer.Initialize(context);
+}
+
 app.UseCors("AllowAll");
 
-// Configure the HTTP request pipeline.
+app.MapControllers();
 
-// Health check
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
-// Hello endpoint
 app.MapGet("/api/hello", () => Results.Ok(new { message = "Hello User from the backend" }));
 
 app.Run();
