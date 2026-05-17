@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OpsFlow.Infrastructure.Data;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,11 +15,21 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<OpsFlowDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddControllers();
+
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<OpsFlowDbContext>();
+    DbInitializer.Initialize(context);
+}
+
 app.UseCors("AllowAll");
+
+app.MapControllers();
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
