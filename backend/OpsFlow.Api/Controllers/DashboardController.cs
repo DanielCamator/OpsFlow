@@ -27,17 +27,15 @@ namespace OpsFlow.Api.Controllers
             {
                 Total = await _context.WorkOrders.CountAsync(),
                 New = await _context.WorkOrders.CountAsync(w => w.Status == WorkOrderStatus.New),
+                Assigned = await _context.WorkOrders.CountAsync(w => w.Status == WorkOrderStatus.Assigned),
                 InProgress = await _context.WorkOrders.CountAsync(w => w.Status == WorkOrderStatus.InProgress),
                 Blocked = await _context.WorkOrders.CountAsync(w => w.Status == WorkOrderStatus.Blocked),
-
                 Completed = await _context.WorkOrders.CountAsync(w => w.Status == WorkOrderStatus.Completed),
+                Cancelled = await _context.WorkOrders.CountAsync(w => w.Status == WorkOrderStatus.Cancelled),
+
                 Urgent = await _context.WorkOrders.CountAsync(w => w.Priority == WorkOrderPriority.Urgent && w.Status != WorkOrderStatus.Completed && w.Status != WorkOrderStatus.Cancelled),
                 Unassigned = await _context.WorkOrders.CountAsync(w => w.AssignedToId == null && w.Status != WorkOrderStatus.Completed && w.Status != WorkOrderStatus.Cancelled),
-
-                Overdue = await _context.WorkOrders.CountAsync(w =>
-                    w.Status != WorkOrderStatus.Completed &&
-                    w.Status != WorkOrderStatus.Cancelled &&
-                    w.DueDate.HasValue && w.DueDate < now)
+                Overdue = await _context.WorkOrders.CountAsync(w => w.Status != WorkOrderStatus.Completed && w.Status != WorkOrderStatus.Cancelled && w.DueDate.HasValue && w.DueDate < now)
             };
 
             return Ok(metrics);

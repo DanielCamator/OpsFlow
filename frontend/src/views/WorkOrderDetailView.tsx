@@ -298,6 +298,7 @@ export const WorkOrderDetailView = () => {
                             className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-cyan-500/40 disabled:opacity-50"
                         >
                             <option value={WorkOrderStatus.New}>New</option>
+                            <option value={WorkOrderStatus.Assigned}>Assigned</option> {/* <- Agregado */}
                             <option value={WorkOrderStatus.InProgress}>In Progress</option>
                             <option value={WorkOrderStatus.Blocked}>Blocked</option>
                             <option value={WorkOrderStatus.Completed}>Completed</option>
