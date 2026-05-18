@@ -22,12 +22,39 @@ namespace OpsFlow.Api.Controllers
 
         // GET: api/workorders
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] WorkOrderQueryParameters queryParams)
         {
-            var orders = await _context.WorkOrders
+            var query = _context.WorkOrders
                 .Include(w => w.CreatedBy)
                 .Include(w => w.AssignedTo)
-                .OrderByDescending(w => w.CreatedAt)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(queryParams.SearchTerm))
+            {
+                var search = queryParams.SearchTerm.ToLower();
+                query = query.Where(w =>
+                    w.Title.ToLower().Contains(search) ||
+                    w.CustomerName.ToLower().Contains(search));
+            }
+
+            if (queryParams.Status.HasValue)
+                query = query.Where(w => w.Status == queryParams.Status.Value);
+
+            if (queryParams.Priority.HasValue)
+                query = query.Where(w => w.Priority == queryParams.Priority.Value);
+
+            query = queryParams.SortBy?.ToLower() switch
+            {
+                "title" => queryParams.SortDescending ? query.OrderByDescending(w => w.Title) : query.OrderBy(w => w.Title),
+                "duedate" => queryParams.SortDescending ? query.OrderByDescending(w => w.DueDate) : query.OrderBy(w => w.DueDate),
+                _ => queryParams.SortDescending ? query.OrderByDescending(w => w.CreatedAt) : query.OrderBy(w => w.CreatedAt)
+            };
+
+            var totalCount = await query.CountAsync();
+
+            var orders = await query
+                .Skip((queryParams.PageNumber - 1) * queryParams.PageSize)
+                .Take(queryParams.PageSize)
                 .Select(w => new
                 {
                     w.Id,
@@ -36,12 +63,21 @@ namespace OpsFlow.Api.Controllers
                     Status = w.Status.ToString(),
                     Priority = w.Priority.ToString(),
                     w.CreatedAt,
+                    w.DueDate,
                     IsOverdue = w.IsOverdue(),
                     AssignedTo = w.AssignedTo != null ? w.AssignedTo.Username : "Unassigned"
                 })
                 .ToListAsync();
 
-            return Ok(orders);
+            var response = new PagedResponse<object>
+            {
+                Items = orders,
+                TotalCount = totalCount,
+                PageNumber = queryParams.PageNumber,
+                PageSize = queryParams.PageSize
+            };
+
+            return Ok(response);
         }
 
         // GET: api/workorders/{id}

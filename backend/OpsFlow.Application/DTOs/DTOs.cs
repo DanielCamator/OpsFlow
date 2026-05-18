@@ -15,4 +15,24 @@ namespace OpsFlow.Application.DTOs
     {
         public Guid AssignedToId { get; set; }
     }
+
+    public class WorkOrderQueryParameters
+    {
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+        public string? SearchTerm { get; set; }
+        public OpsFlow.Domain.Enums.WorkOrderStatus? Status { get; set; }
+        public OpsFlow.Domain.Enums.WorkOrderPriority? Priority { get; set; }
+        public string? SortBy { get; set; } = "CreatedAt";
+        public bool SortDescending { get; set; } = true;
+    }
+
+    public class PagedResponse<T>
+    {
+        public IEnumerable<T> Items { get; set; } = new List<T>();
+        public int TotalCount { get; set; }
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
+    }
 }
