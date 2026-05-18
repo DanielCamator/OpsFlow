@@ -127,6 +127,11 @@ namespace OpsFlow.Api.Controllers
                 CreatedById = userId
             };
 
+            if (dto.AssignedToId.HasValue && dto.AssignedToId.Value != Guid.Empty)
+            {
+                workOrder.AssignTo(dto.AssignedToId.Value);
+            }
+
             _context.WorkOrders.Add(workOrder);
             await _context.SaveChangesAsync();
 

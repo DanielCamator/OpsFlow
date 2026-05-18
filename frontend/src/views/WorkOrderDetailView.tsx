@@ -206,7 +206,6 @@ export const WorkOrderDetailView = () => {
         if (isViewer) return;
         if (!order) return;
 
-        // CANDADO DE LÓGICA (Guard Clause): Prevenir desasignación si ya tiene un operador asignado
         if (agentId === "" && order.assignedToId) {
             setActionError("Domain Violation: Once assigned, the work order cannot be reverted to unassigned.");
             return;
@@ -247,7 +246,6 @@ export const WorkOrderDetailView = () => {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* PANEL IZQUIERDO */}
             <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-6">
                 {isEditing ? (
                     <form onSubmit={handleSaveDetails} className="space-y-4">
@@ -319,7 +317,6 @@ export const WorkOrderDetailView = () => {
                 )}
             </div>
 
-            {/* PANEL DERECHO: CONTROLES OPERATIVOS */}
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl flex flex-col justify-between relative overflow-hidden">
                 {updating && (
                     <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-xs flex justify-center items-center z-10">
@@ -345,7 +342,6 @@ export const WorkOrderDetailView = () => {
                         </div>
                     )}
 
-                    {/* Selector de Estatus */}
                     <div>
                         <label className="block text-xs font-mono uppercase text-slate-400 mb-2">Current Status</label>
                         <select
@@ -363,7 +359,6 @@ export const WorkOrderDetailView = () => {
                         </select>
                     </div>
 
-                    {/* Selector de Prioridad */}
                     <div>
                         <label className="block text-xs font-mono uppercase text-slate-400 mb-2">Priority Level</label>
                         <select
@@ -379,7 +374,6 @@ export const WorkOrderDetailView = () => {
                         </select>
                     </div>
 
-                    {/* Selector de Agentes */}
                     <div>
                         <label className="block text-xs font-mono uppercase text-slate-400 mb-2">Assigned Operator (Agent)</label>
                         <select
@@ -388,7 +382,6 @@ export const WorkOrderDetailView = () => {
                             onChange={(e) => handleAssignAgent(e.target.value)}
                             className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-cyan-500/40 disabled:opacity-50 font-sans"
                         >
-                            {/* CANDADO VISUAL: Se agrega el atributo disabled responsivo si ya existe un assignedToId */}
                             <option value="" disabled={!!order.assignedToId}>
                                 Unassigned {order.assignedToId ? '🔒 (Locked)' : ''}
                             </option>

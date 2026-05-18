@@ -16,7 +16,11 @@ interface WorkOrderListItem {
 
 export const WorkOrdersView = () => {
     const { token, user } = useAuth();
-    const isViewer = user?.role?.toLowerCase() === 'viewer';
+    
+    // CORRECCIÓN: Extracción ultra-defensiva de claims compatible con Microsoft .NET
+    const rawRole = user?.role || user?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+    const userRole = typeof rawRole === 'string' ? rawRole.toLowerCase() : '';
+    const isAdminOrManager = userRole === 'admin' || userRole === 'manager';
     
     const [queryParams, setQueryParams] = useState<WorkOrderQueryParameters>({
         pageNumber: 1,
@@ -103,7 +107,6 @@ export const WorkOrdersView = () => {
         
         const s = status.toString().toLowerCase();
 
-        // CORREGIDO: Índices alineados con tu enum de C# (0=New, 1=Assigned, 2=InProgress, etc.)
         const styles: Record<string, string> = {
             '0': 'bg-cyan-950/40 border-cyan-800 text-cyan-400',
             'new': 'bg-cyan-950/40 border-cyan-800 text-cyan-400',
@@ -156,7 +159,7 @@ export const WorkOrdersView = () => {
                     >
                         <option value="">All Statuses</option>
                         <option value={WorkOrderStatus.New}>New</option>
-                        <option value={WorkOrderStatus.Assigned}>Assigned</option> {/* CORREGIDO: Agregado */}
+                        <option value={WorkOrderStatus.Assigned}>Assigned</option>
                         <option value={WorkOrderStatus.InProgress}>In Progress</option>
                         <option value={WorkOrderStatus.Blocked}>Blocked</option>
                         <option value={WorkOrderStatus.Completed}>Completed</option>
@@ -175,7 +178,9 @@ export const WorkOrdersView = () => {
                         <option value={WorkOrderPriority.Urgent}>Urgent</option>
                     </select>
                 </div>
-                {!isViewer && (
+
+                {/* CORREGIDO: Condición estricta basada en roles autorizados de C# */}
+                {isAdminOrManager && (
                     <Link 
                         to="/work-orders/new"
                         className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-medium text-sm rounded-lg transition-colors shadow-lg shadow-cyan-950/20 text-center inline-block"
