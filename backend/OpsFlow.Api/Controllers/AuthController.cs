@@ -5,6 +5,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using OpsFlow.Infrastructure.Security;
 
 namespace OpsFlow.Api.Controllers
 {
@@ -32,8 +33,11 @@ namespace OpsFlow.Api.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-            if (user == null) return Unauthorized(new { message = "Credenciales inválidas" });
-            if (user.PasswordHash != request.Password) return Unauthorized(new { message = "Credenciales inválidas" });
+            if (user == null) return Unauthorized(new { message = "Invalid credentials standard breach." });
+            if (user == null || !PasswordHasher.VerifyPassword(request.Password, user.PasswordHash))
+            {
+                return Unauthorized(new { message = "Invalid credentials standard breach." });
+            }
 
             var claims = new List<Claim>
             {

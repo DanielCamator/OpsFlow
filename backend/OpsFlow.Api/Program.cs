@@ -34,7 +34,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -46,12 +50,15 @@ using (var scope = app.Services.CreateScope())
     DbInitializer.Initialize(context);
 }
 
+
 app.UseCors("AllowAll");
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
-
 app.MapGet("/api/hello", () => Results.Ok(new { message = "Hello User from the backend" }));
 
 app.Run();

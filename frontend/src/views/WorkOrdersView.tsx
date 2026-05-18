@@ -17,7 +17,6 @@ interface WorkOrderListItem {
 export const WorkOrdersView = () => {
     const { token, user } = useAuth();
     
-    // CORRECCIÓN: Extracción ultra-defensiva de claims compatible con Microsoft .NET
     const rawRole = user?.role || user?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
     const userRole = typeof rawRole === 'string' ? rawRole.toLowerCase() : '';
     const isAdminOrManager = userRole === 'admin' || userRole === 'manager';
@@ -138,6 +137,12 @@ export const WorkOrdersView = () => {
         );
     };
 
+    const totalCount = data?.totalCount ?? (data as any)?.TotalCount ?? 0;
+    const currentPage = data?.pageNumber ?? (data as any)?.PageNumber ?? 1;
+    const pageSize = data?.pageSize ?? (data as any)?.PageSize ?? 10;
+    
+    const totalPages = Math.ceil(totalCount / pageSize);
+
     return (
         <div className="space-y-6">
             
@@ -179,7 +184,6 @@ export const WorkOrdersView = () => {
                     </select>
                 </div>
 
-                {/* CORREGIDO: Condición estricta basada en roles autorizados de C# */}
                 {isAdminOrManager && (
                     <Link 
                         to="/work-orders/new"
@@ -266,22 +270,22 @@ export const WorkOrdersView = () => {
                     </table>
                 </div>
 
-                {data && data.totalPages > 1 && (
+                {data && totalPages > 1 && (
                     <div className="p-4 border-t border-slate-800 bg-slate-900/50 flex items-center justify-between font-mono text-xs text-slate-400">
                         <div>
-                            Showing page <span className="text-slate-200">{data.pageNumber}</span> of <span className="text-slate-200">{data.totalPages}</span> ({data.totalCount} total items)
+                            Showing page <span className="text-slate-200">{currentPage}</span> of <span className="text-slate-200">{totalPages}</span> ({totalCount} total items)
                         </div>
                         <div className="flex gap-2">
                             <button
-                                disabled={data.pageNumber <= 1}
-                                onClick={() => setQueryParams(prev => ({ ...prev, pageNumber: prev.pageNumber! - 1 }))}
+                                disabled={currentPage <= 1}
+                                onClick={() => setQueryParams(prev => ({ ...prev, pageNumber: currentPage - 1 }))}
                                 className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded disabled:opacity-40 disabled:hover:border-slate-700 hover:border-slate-500 text-white transition-colors"
                             >
                                 Previous
                             </button>
                             <button
-                                disabled={data.pageNumber >= data.totalPages}
-                                onClick={() => setQueryParams(prev => ({ ...prev, pageNumber: prev.pageNumber! + 1 }))}
+                                disabled={currentPage >= totalPages}
+                                onClick={() => setQueryParams(prev => ({ ...prev, pageNumber: currentPage + 1 }))}
                                 className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded disabled:opacity-40 disabled:hover:border-slate-700 hover:border-slate-500 text-white transition-colors"
                             >
                                 Next

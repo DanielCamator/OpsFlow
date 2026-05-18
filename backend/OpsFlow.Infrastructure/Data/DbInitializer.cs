@@ -1,6 +1,7 @@
-﻿using OpsFlow.Domain.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using OpsFlow.Domain.Entities;
 using OpsFlow.Domain.Enums;
-using Microsoft.EntityFrameworkCore;
+using OpsFlow.Infrastructure.Security;
 
 namespace OpsFlow.Infrastructure.Data
 {
@@ -19,11 +20,11 @@ namespace OpsFlow.Infrastructure.Data
 
             var users = new User[]
             {
-                new User { Id = adminId, Username = "Admin", Email = "admin@opsflow.com", PasswordHash = "admin123", Role = UserRole.Admin },
-                new User { Id = managerId, Username = "Manager", Email = "manager@opsflow.com", PasswordHash = "manager123", Role = UserRole.Manager },
-                new User { Id = agent1Id, Username = "Agent 1", Email = "agent1@opsflow.com", PasswordHash = "agent123", Role = UserRole.Agent },
-                new User { Id = agent2Id, Username = "Agent 2", Email = "agent2@opsflow.com", PasswordHash = "agent123", Role = UserRole.Agent },
-                new User { Id = Guid.NewGuid(), Username = "Viewer", Email = "viewer@opsflow.com", PasswordHash = "viewer123", Role = UserRole.Viewer }
+                new User { Id = adminId, Username = "Admin", Email = "admin@opsflow.com", PasswordHash = PasswordHasher.HashPassword("admin123"), Role = UserRole.Admin },
+                new User { Id = managerId, Username = "Manager", Email = "manager@opsflow.com", PasswordHash = PasswordHasher.HashPassword("manager123"), Role = UserRole.Manager },
+                new User { Id = agent1Id, Username = "Agent 1", Email = "agent1@opsflow.com", PasswordHash = PasswordHasher.HashPassword("agent123"), Role = UserRole.Agent },
+                new User { Id = agent2Id, Username = "Agent 2", Email = "agent2@opsflow.com", PasswordHash = PasswordHasher.HashPassword("agent123"), Role = UserRole.Agent },
+                new User { Id = Guid.NewGuid(), Username = "Viewer", Email = "viewer@opsflow.com", PasswordHash = PasswordHasher.HashPassword("viewer123"), Role = UserRole.Viewer }
             };
 
             context.Users.AddRange(users);
