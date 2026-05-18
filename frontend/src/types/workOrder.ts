@@ -18,7 +18,7 @@ export interface CreateWorkOrderDto {
     description: string;
     customerName: string;
     priority: WorkOrderPriority;
-    targetDate?: string;
+    dueDate?: string;
 }
 
 export interface AssignWorkOrderDto {

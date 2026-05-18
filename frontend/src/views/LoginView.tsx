@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../config';
 
-// Usuarios semilla/prueba sugeridos para el revisor
 const SEEDED_USERS = [
     { email: 'admin@opsflow.com', pass: 'admin123', role: 'Admin', color: 'border-cyan-500/30 text-cyan-400' },
     { email: 'agent@opsflow.com', pass: 'agent123', role: 'Agent', color: 'border-purple-500/30 text-purple-400' },
@@ -18,7 +18,6 @@ export const LoginView = () => {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    // Función para autocompletar credenciales en 1 click
     const handleQuickSelect = (uEmail: string, uPass: string) => {
         setEmail(uEmail);
         setPassword(uPass);
@@ -31,19 +30,18 @@ export const LoginView = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:5010/api/auth/login', {
+            const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
             });
 
             if (!response.ok) {
-                // Captura de errores del servidor o credenciales inválidas
                 const errorData = await response.json().catch(() => ({}));
                 throw new Error(errorData.message || 'Invalid credentials or server error.');
             }
 
-            const data = await response.json(); // Espera { token: "ey..." }
+            const data = await response.json();
             
             if (data.token) {
                 login(data.token);

@@ -122,7 +122,7 @@ namespace OpsFlow.Api.Controllers
                 Description = dto.Description,
                 CustomerName = dto.CustomerName,
                 Priority = dto.Priority,
-                DueDate = dto.TargetDate,
+                DueDate = dto.DueDate,
                 CreatedById = userId
             };
 
