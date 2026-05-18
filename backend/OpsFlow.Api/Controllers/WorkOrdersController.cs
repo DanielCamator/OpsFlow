@@ -243,6 +243,7 @@ namespace OpsFlow.Api.Controllers
             order.Description = dto.Description;
             order.CustomerName = dto.CustomerName;
             order.DueDate = dto.DueDate;
+            order.Priority = dto.Priority;
 
             await _context.SaveChangesAsync();
             return NoContent();

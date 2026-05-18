@@ -131,6 +131,20 @@ Not implemented. The application relies entirely on the local secure credential 
 
 ---
 
+## 8. Potential Improvements
+
+The following enhancements have been identified as valuable next steps to improve the robustness, maintainability, and functionality of OpsFlow:
+
+- **Customer CRUD Module** — Introduce full Create, Read, Update, and Delete operations for customers, allowing the system to manage client records directly rather than relying on external data sources or hardcoded references.
+
+- **Global Exception Handler** — Implement a centralized exception handling middleware to intercept unhandled errors across the API, return consistent and structured error responses, and reduce repetitive try/catch logic scattered throughout controllers and services.
+
+- **Repository Pattern / Data Access Interfaces** — Abstract database access behind interfaces to decouple business logic from EF Core implementation details, improving testability, maintainability, and making future data source swaps significantly easier.
+
+- **Work Order Notes** — Allow team members to attach timestamped notes to a work order, providing a lightweight audit trail of observations, blockers, and progress updates throughout the ticket's lifecycle.
+
+---
+
 ## 🤖 AI Usage
 
 This project was built with AI assistance. See [`AI_USAGE.md`](./AI_USAGE.md) for full disclosure on tools used, areas of assistance, and corrections made.
