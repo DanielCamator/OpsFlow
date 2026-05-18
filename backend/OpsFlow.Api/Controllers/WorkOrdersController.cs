@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpsFlow.Application.DTOs;
 using OpsFlow.Domain.Entities;
+using OpsFlow.Domain.Enums;
 using OpsFlow.Infrastructure.Data;
 using System.Security.Claims;
 
@@ -126,6 +127,11 @@ namespace OpsFlow.Api.Controllers
                 CreatedById = userId
             };
 
+            if (dto.AssignedToId.HasValue && dto.AssignedToId.Value != Guid.Empty)
+            {
+                workOrder.AssignTo(dto.AssignedToId.Value);
+            }
+
             _context.WorkOrders.Add(workOrder);
             await _context.SaveChangesAsync();
 
@@ -218,6 +224,28 @@ namespace OpsFlow.Api.Controllers
                 return NoContent();
             }
             catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
+        // PUT: api/workorders/{id}
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] CreateWorkOrderDto dto)
+        {
+            var order = await _context.WorkOrders.FindAsync(id);
+            if (order == null) return NotFound();
+
+            if (order.Status == WorkOrderStatus.Completed || order.Status == WorkOrderStatus.Cancelled)
+            {
+                return BadRequest(new { message = "Cannot edit a closed work order." });
+            }
+
+            order.Title = dto.Title;
+            order.Description = dto.Description;
+            order.CustomerName = dto.CustomerName;
+            order.DueDate = dto.DueDate;
+
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
     }
 }

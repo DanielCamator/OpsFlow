@@ -9,8 +9,8 @@ interface WorkOrderDetails {
     title: string;
     description: string;
     customerName: string;
-    status: WorkOrderStatus;
-    priority: WorkOrderPriority;
+    status: number;
+    priority: number;
     dueDate: string | null;
     assignedToId: string | null;
 }
@@ -32,11 +32,27 @@ export const WorkOrderDetailView = () => {
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [actionError, setActionError] = useState<string | null>(null);
 
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState<Partial<WorkOrderDetails>>({});
-
     const [agents, setAgents] = useState<AgentListItem[]>([]);
+
+    const parseStatusStringToNumber = (statusStr: string | number): number => {
+        if (typeof statusStr === 'number') return statusStr;
+        const mapping: Record<string, number> = {
+            'new': 0, 'assigned': 1, 'inprogress': 2, 'blocked': 3, 'completed': 4, 'cancelled': 5
+        };
+        return mapping[statusStr.toLowerCase()] ?? 0;
+    };
+
+    const parsePriorityStringToNumber = (priorityStr: string | number): number => {
+        if (typeof priorityStr === 'number') return priorityStr;
+        const mapping: Record<string, number> = {
+            'low': 0, 'medium': 1, 'high': 2, 'urgent': 3
+        };
+        return mapping[priorityStr.toLowerCase()] ?? 0;
+    };
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -46,6 +62,10 @@ export const WorkOrderDetailView = () => {
                 });
                 if (!response.ok) throw new Error('Could not retrieve work order details.');
                 const data = await response.json();
+                
+                data.status = parseStatusStringToNumber(data.status ?? data.Status);
+                data.priority = parsePriorityStringToNumber(data.priority ?? data.Priority);
+
                 setOrder(data);
             } catch (err: any) {
                 setError(err.message);
@@ -94,6 +114,7 @@ export const WorkOrderDetailView = () => {
         e.preventDefault();
         if (!order || isViewer) return;
         setUpdating(true);
+        setActionError(null);
         try {
             const response = await fetch(`${API_URL}/api/workorders/${id}`, {
                 method: 'PUT',
@@ -111,7 +132,10 @@ export const WorkOrderDetailView = () => {
                 })
             });
 
-            if (!response.ok) throw new Error('Failed to update structural fields.');
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.message || 'Failed to update structural fields.');
+            }
 
             setOrder(prev => prev ? {
                 ...prev,
@@ -122,7 +146,7 @@ export const WorkOrderDetailView = () => {
             } : null);
             setIsEditing(false);
         } catch (err: any) {
-            alert(err.message);
+            setActionError(err.message);
         } finally {
             setUpdating(false);
         }
@@ -131,20 +155,48 @@ export const WorkOrderDetailView = () => {
     const handleUpdateStatusOrPriority = async (field: 'status' | 'priority', value: number) => {
         if (isViewer) return;
         setUpdating(true);
+        setActionError(null);
         try {
-            const response = await fetch(`${API_URL}/api/workorders/${id}/${field}`, {
+            let url = `${API_URL}/api/workorders/${id}`;
+            let body: any = null;
+
+            if (field === 'priority') {
+                url = `${API_URL}/api/workorders/${id}`;
+                body = JSON.stringify({
+                    title: order?.title,
+                    customerName: order?.customerName,
+                    description: order?.description,
+                    dueDate: order?.dueDate,
+                    priority: value
+                });
+            } else if (field === 'status') {
+                if (value === 2) url += '/status/start';
+                else if (value === 3) url += '/status/block';
+                else if (value === 4) url += '/status/complete';
+                else if (value === 5) url += '/status/cancel';
+                else {
+                    throw new Error("Transición directa de estado no permitida por las reglas de negocio.");
+                }
+                body = null;
+            }
+
+            const response = await fetch(url, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ [field]: value })
+                body: body
             });
 
-            if (!response.ok) throw new Error(`Failed to update ${field}.`);
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.message || `Failed to update ${field}.`);
+            }
+            
             setOrder(prev => prev ? { ...prev, [field]: value } : null);
         } catch (err: any) {
-            alert(err.message);
+            setActionError(err.message);
         } finally {
             setUpdating(false);
         }
@@ -152,7 +204,15 @@ export const WorkOrderDetailView = () => {
 
     const handleAssignAgent = async (agentId: string) => {
         if (isViewer) return;
+        if (!order) return;
+
+        if (agentId === "" && order.assignedToId) {
+            setActionError("Domain Violation: Once assigned, the work order cannot be reverted to unassigned.");
+            return;
+        }
+
         setUpdating(true);
+        setActionError(null);
         try {
             const response = await fetch(`${API_URL}/api/workorders/${id}/assign`, {
                 method: 'PUT',
@@ -163,10 +223,18 @@ export const WorkOrderDetailView = () => {
                 body: JSON.stringify({ assignedToId: agentId === "" ? null : agentId })
             });
 
-            if (!response.ok) throw new Error('Failed to assign the work order.');
-            setOrder(prev => prev ? { ...prev, assignedToId: agentId === "" ? null : agentId } : null);
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.message || 'Failed to assign the work order.');
+            }
+            
+            setOrder(prev => prev ? { 
+                ...prev, 
+                assignedToId: agentId === "" ? null : agentId, 
+                status: agentId === "" ? prev.status : 1 
+            } : null);
         } catch (err: any) {
-            alert(err.message);
+            setActionError(err.message);
         } finally {
             setUpdating(false);
         }
@@ -220,19 +288,8 @@ export const WorkOrderDetailView = () => {
                             />
                         </div>
                         <div className="flex justify-end gap-2 pt-2">
-                            <button
-                                type="button"
-                                onClick={() => setIsEditing(false)}
-                                className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-medium text-xs rounded-lg transition-colors"
-                            >
-                                Save Matrix Changes
-                            </button>
+                            <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300">Cancel</button>
+                            <button type="submit" className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-medium text-xs rounded-lg transition-colors">Save Matrix Changes</button>
                         </div>
                     </form>
                 ) : (
@@ -251,20 +308,9 @@ export const WorkOrderDetailView = () => {
                         </div>
 
                         <div className="flex justify-between items-center pt-4 border-t border-slate-800/60">
-                            <button 
-                                onClick={() => navigate('/work-orders')}
-                                className="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-4 py-2 rounded-lg transition-colors"
-                            >
-                                ← Back to List
-                            </button>
-                            
+                            <button onClick={() => navigate('/work-orders')} className="text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-4 py-2 rounded-lg transition-colors">← Back to List</button>
                             {!isViewer && (
-                                <button
-                                    onClick={handleStartEditing}
-                                    className="text-xs bg-slate-800 border border-slate-700 hover:border-cyan-500/50 hover:text-white text-slate-300 px-4 py-2 rounded-lg transition-all"
-                                >
-                                    🔧 Edit Details
-                                </button>
+                                <button onClick={handleStartEditing} className="text-xs bg-slate-800 border border-slate-700 hover:border-cyan-500/50 hover:text-white text-slate-300 px-4 py-2 rounded-lg transition-all">🔧 Edit Details</button>
                             )}
                         </div>
                     </>
@@ -283,6 +329,13 @@ export const WorkOrderDetailView = () => {
                         Operational Controls
                     </h3>
 
+                    {actionError && (
+                        <div className="p-3 bg-red-950/40 border border-red-800 text-red-400 text-xs rounded-lg font-mono flex items-start gap-1 justify-between shadow-inner">
+                            <span>⚠️ {actionError}</span>
+                            <button onClick={() => setActionError(null)} className="text-red-400/60 hover:text-red-400 font-bold ml-1 text-sm leading-none">×</button>
+                        </div>
+                    )}
+
                     {isViewer && (
                         <div className="p-3 bg-slate-950 border border-slate-800 text-slate-500 text-xs rounded-lg font-mono">
                             🔒 Mode: Read-Only. Your account permissions do not allow alterations.
@@ -298,6 +351,7 @@ export const WorkOrderDetailView = () => {
                             className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-cyan-500/40 disabled:opacity-50"
                         >
                             <option value={WorkOrderStatus.New}>New</option>
+                            <option value={WorkOrderStatus.Assigned}>Assigned</option>
                             <option value={WorkOrderStatus.InProgress}>In Progress</option>
                             <option value={WorkOrderStatus.Blocked}>Blocked</option>
                             <option value={WorkOrderStatus.Completed}>Completed</option>
@@ -328,10 +382,12 @@ export const WorkOrderDetailView = () => {
                             onChange={(e) => handleAssignAgent(e.target.value)}
                             className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-cyan-500/40 disabled:opacity-50 font-sans"
                         >
-                            <option value="">Unassigned</option>
+                            <option value="" disabled={!!order.assignedToId}>
+                                Unassigned {order.assignedToId ? '🔒 (Locked)' : ''}
+                            </option>
                             {agents.map(agent => (
                                 <option key={agent.id} value={agent.id}>
-                                    {agent.name} ({agent.email})
+                                    {agent.name}
                                 </option>
                             ))}
                         </select>

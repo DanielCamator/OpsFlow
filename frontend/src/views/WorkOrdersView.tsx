@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom'; // <- Agregado para la navegación
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { WorkOrderPriority, WorkOrderStatus, WorkOrderQueryParameters, PagedResponse } from '../types/workOrder';
 import { API_URL } from '../config';
@@ -16,7 +16,11 @@ interface WorkOrderListItem {
 
 export const WorkOrdersView = () => {
     const { token, user } = useAuth();
-    const isViewer = user?.role?.toLowerCase() === 'viewer';
+    
+    // CORRECCIÓN: Extracción ultra-defensiva de claims compatible con Microsoft .NET
+    const rawRole = user?.role || user?.['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+    const userRole = typeof rawRole === 'string' ? rawRole.toLowerCase() : '';
+    const isAdminOrManager = userRole === 'admin' || userRole === 'manager';
     
     const [queryParams, setQueryParams] = useState<WorkOrderQueryParameters>({
         pageNumber: 1,
@@ -69,67 +73,70 @@ export const WorkOrdersView = () => {
     }, [queryParams]);
 
     const getPriorityBadge = (priority: any) => {
-    if (priority === undefined || priority === null) return <span className="text-slate-600">—</span>;
-    
-    const p = priority.toString().toLowerCase();
+        if (priority === undefined || priority === null) return <span className="text-slate-600">—</span>;
+        
+        const p = priority.toString().toLowerCase();
 
-    const styles: Record<string, string> = {
-        '0': 'bg-slate-900 border-slate-700 text-slate-400',
-        'low': 'bg-slate-900 border-slate-700 text-slate-400',
-        '1': 'bg-blue-950/40 border-blue-800 text-blue-400',
-        'medium': 'bg-blue-950/40 border-blue-800 text-blue-400',
-        '2': 'bg-orange-950/40 border-orange-800 text-orange-400',
-        'high': 'bg-orange-950/40 border-orange-800 text-orange-400',
-        '3': 'bg-red-950/50 border-red-500/50 text-red-400 animate-pulse',
-        'urgent': 'bg-red-950/50 border-red-500/50 text-red-400 animate-pulse',
+        const styles: Record<string, string> = {
+            '0': 'bg-slate-900 border-slate-700 text-slate-400',
+            'low': 'bg-slate-900 border-slate-700 text-slate-400',
+            '1': 'bg-blue-950/40 border-blue-800 text-blue-400',
+            'medium': 'bg-blue-950/40 border-blue-800 text-blue-400',
+            '2': 'bg-orange-950/40 border-orange-800 text-orange-400',
+            'high': 'bg-orange-950/40 border-orange-800 text-orange-400',
+            '3': 'bg-red-950/50 border-red-500/50 text-red-400 animate-pulse',
+            'urgent': 'bg-red-950/50 border-red-500/50 text-red-400 animate-pulse',
+        };
+
+        const labels: Record<string, string> = {
+            '0': 'Low', 'low': 'Low',
+            '1': 'Medium', 'medium': 'Medium',
+            '2': 'High', 'high': 'High',
+            '3': 'Urgent', 'urgent': 'Urgent',
+        };
+
+        return (
+            <span className={`px-2 py-1 text-xs font-mono border rounded-md ${styles[p] || 'bg-slate-800 text-slate-400'}`}>
+                {labels[p] || p}
+            </span>
+        );
     };
 
-    const labels: Record<string, string> = {
-        '0': 'Low', 'low': 'Low',
-        '1': 'Medium', 'medium': 'Medium',
-        '2': 'High', 'high': 'High',
-        '3': 'Urgent', 'urgent': 'Urgent',
+    const getStatusBadge = (status: any) => {
+        if (status === undefined || status === null) return <span className="text-slate-600">—</span>;
+        
+        const s = status.toString().toLowerCase();
+
+        const styles: Record<string, string> = {
+            '0': 'bg-cyan-950/40 border-cyan-800 text-cyan-400',
+            'new': 'bg-cyan-950/40 border-cyan-800 text-cyan-400',
+            '1': 'bg-blue-950/40 border-blue-800 text-blue-400',
+            'assigned': 'bg-blue-950/40 border-blue-800 text-blue-400',
+            '2': 'bg-purple-950/40 border-purple-800 text-purple-400',
+            'inprogress': 'bg-purple-950/40 border-purple-800 text-purple-400',
+            '3': 'bg-amber-950/40 border-amber-800 text-amber-400',
+            'blocked': 'bg-amber-950/40 border-amber-800 text-amber-400',
+            '4': 'bg-emerald-950/40 border-emerald-800 text-emerald-400',
+            'completed': 'bg-emerald-950/40 border-emerald-800 text-emerald-400',
+            '5': 'bg-zinc-900 border-zinc-800 text-zinc-500',
+            'cancelled': 'bg-zinc-900 border-zinc-800 text-zinc-500',
+        };
+
+        const labels: Record<string, string> = {
+            '0': 'New', 'new': 'New',
+            '1': 'Assigned', 'assigned': 'Assigned',
+            '2': 'In Progress', 'inprogress': 'In Progress',
+            '3': 'Blocked', 'blocked': 'Blocked',
+            '4': 'Completed', 'completed': 'Completed',
+            '5': 'Cancelled', 'cancelled': 'Cancelled',
+        };
+
+        return (
+            <span className={`px-2 py-0.5 text-xs font-medium border rounded-full ${styles[s] || 'bg-slate-800 text-slate-400'}`}>
+                {labels[s] || s}
+            </span>
+        );
     };
-
-    return (
-        <span className={`px-2 py-1 text-xs font-mono border rounded-md ${styles[p] || 'bg-slate-800 text-slate-400'}`}>
-            {labels[p] || p}
-        </span>
-    );
-};
-
-const getStatusBadge = (status: any) => {
-    if (status === undefined || status === null) return <span className="text-slate-600">—</span>;
-    
-    const s = status.toString().toLowerCase();
-
-    const styles: Record<string, string> = {
-        '0': 'bg-cyan-950/40 border-cyan-800 text-cyan-400',
-        'new': 'bg-cyan-950/40 border-cyan-800 text-cyan-400',
-        '1': 'bg-purple-950/40 border-purple-800 text-purple-400',
-        'inprogress': 'bg-purple-950/40 border-purple-800 text-purple-400',
-        '2': 'bg-amber-950/40 border-amber-800 text-amber-400',
-        'blocked': 'bg-amber-950/40 border-amber-800 text-amber-400',
-        '3': 'bg-emerald-950/40 border-emerald-800 text-emerald-400',
-        'completed': 'bg-emerald-950/40 border-emerald-800 text-emerald-400',
-        '4': 'bg-zinc-900 border-zinc-800 text-zinc-500',
-        'cancelled': 'bg-zinc-900 border-zinc-800 text-zinc-500',
-    };
-
-    const labels: Record<string, string> = {
-        '0': 'New', 'new': 'New',
-        '1': 'In Progress', 'inprogress': 'In Progress',
-        '2': 'Blocked', 'blocked': 'Blocked',
-        '3': 'Completed', 'completed': 'Completed',
-        '4': 'Cancelled', 'cancelled': 'Cancelled',
-    };
-
-    return (
-        <span className={`px-2 py-0.5 text-xs font-medium border rounded-full ${styles[s] || 'bg-slate-800 text-slate-400'}`}>
-            {labels[s] || s}
-        </span>
-    );
-};
 
     return (
         <div className="space-y-6">
@@ -152,6 +159,7 @@ const getStatusBadge = (status: any) => {
                     >
                         <option value="">All Statuses</option>
                         <option value={WorkOrderStatus.New}>New</option>
+                        <option value={WorkOrderStatus.Assigned}>Assigned</option>
                         <option value={WorkOrderStatus.InProgress}>In Progress</option>
                         <option value={WorkOrderStatus.Blocked}>Blocked</option>
                         <option value={WorkOrderStatus.Completed}>Completed</option>
@@ -170,7 +178,9 @@ const getStatusBadge = (status: any) => {
                         <option value={WorkOrderPriority.Urgent}>Urgent</option>
                     </select>
                 </div>
-                {!isViewer && (
+
+                {/* CORREGIDO: Condición estricta basada en roles autorizados de C# */}
+                {isAdminOrManager && (
                     <Link 
                         to="/work-orders/new"
                         className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-medium text-sm rounded-lg transition-colors shadow-lg shadow-cyan-950/20 text-center inline-block"
@@ -226,10 +236,8 @@ const getStatusBadge = (status: any) => {
                                             <td className="p-4">{getStatusBadge(statusVal)}</td>
                                             <td className="p-4 font-mono text-xs text-slate-400">
                                                 {(() => {
-                                                    const rawDate = order.dueDate || (order as any).DueDate;
-                                                    
+                                                    const rawDate = dateVal;
                                                     if (!rawDate) return '—';
-                                                    
                                                     const date = new Date(rawDate);
                                                     return isNaN(date.getTime()) ? '—' : date.toLocaleDateString();
                                                 })()}

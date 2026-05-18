@@ -7,10 +7,11 @@ export enum WorkOrderPriority {
 
 export enum WorkOrderStatus {
     New = 0,
-    InProgress = 1,
-    Blocked = 2,
-    Completed = 3,
-    Cancelled = 4
+    Assigned = 1,
+    InProgress = 2,
+    Blocked = 3,
+    Completed = 4,
+    Cancelled = 5
 }
 
 export interface CreateWorkOrderDto {

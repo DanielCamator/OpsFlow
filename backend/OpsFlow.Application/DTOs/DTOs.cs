@@ -9,6 +9,7 @@ namespace OpsFlow.Application.DTOs
         public string CustomerName { get; set; } = string.Empty;
         public WorkOrderPriority Priority { get; set; }
         public DateTime? DueDate { get; set; }
+        public Guid? AssignedToId { get; set; }
     }
 
     public class AssignWorkOrderDto
