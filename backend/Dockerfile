@@ -5,7 +5,10 @@ WORKDIR /src
 # Copiar la solución
 COPY OpsFlow.slnx ./
 
-# Copiar todos los proyectos
+# Copiar todos los proyectos (¡Capas agregadas aquí!)
+COPY OpsFlow.Domain/ ./OpsFlow.Domain/
+COPY OpsFlow.Application/ ./OpsFlow.Application/
+COPY OpsFlow.Infrastructure/ ./OpsFlow.Infrastructure/
 COPY OpsFlow.Api/ ./OpsFlow.Api/
 COPY OpsFlow.Tests/ ./OpsFlow.Tests/
 

@@ -62,7 +62,7 @@ Once containers are up and healthy, open your browser and navigate to the app.
 
 | Service         | URL                   |
 | --------------- | --------------------- |
-| **Frontend UI** | http://localhost:80   |
+| **Frontend UI** | http://localhost:3000 |
 | **Backend API** | http://localhost:5000 |
 
 ---
