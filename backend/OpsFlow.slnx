@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="OpsFlow.Api/OpsFlow.Api.csproj" Id="96bdcf78-8c9f-49c4-9cc6-0896f0d700da" />
+  <Project Path="OpsFlow.Application/OpsFlow.Application.csproj" Id="e8c5bca5-51d2-4458-99ba-d76b0b3ba556" />
   <Project Path="OpsFlow.Domain/OpsFlow.Domain.csproj" Id="81444f47-858a-4de2-a086-413ca522ffbc" />
   <Project Path="OpsFlow.Infrastructure/OpsFlow.Infrastructure.csproj" Id="0b1afcee-42ff-4489-acff-0e2629558aa2" />
   <Project Path="OpsFlow.Tests/OpsFlow.Tests.csproj" Id="e509d9a9-0e1f-44ee-9d6c-d5476b08a38c" />
