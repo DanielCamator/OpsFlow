@@ -149,5 +149,39 @@ namespace OpsFlow.Api.Controllers
             }
             catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
         }
+
+        // PUT: api/workorders/{id}/status/block
+        [HttpPut("{id}/status/block")]
+        [Authorize(Roles = "Admin,Manager,Agent")]
+        public async Task<IActionResult> Block(Guid id)
+        {
+            var order = await _context.WorkOrders.FindAsync(id);
+            if (order == null) return NotFound();
+
+            try
+            {
+                order.ReportBlocked();
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
+        // PUT: api/workorders/{id}/status/cancel
+        [HttpPut("{id}/status/cancel")]
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> Cancel(Guid id)
+        {
+            var order = await _context.WorkOrders.FindAsync(id);
+            if (order == null) return NotFound();
+
+            try
+            {
+                order.Cancel();
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+        }
     }
 }
