@@ -74,6 +74,7 @@ namespace OpsFlow.Api.Controllers
 
         // POST: api/workorders
         [HttpPost]
+        [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> Create([FromBody] CreateWorkOrderDto dto)
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -97,6 +98,7 @@ namespace OpsFlow.Api.Controllers
 
         // PUT: api/workorders/{id}/assign
         [HttpPut("{id}/assign")]
+        [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> Assign(Guid id, [FromBody] AssignWorkOrderDto dto)
         {
             var order = await _context.WorkOrders.FindAsync(id);
@@ -116,6 +118,7 @@ namespace OpsFlow.Api.Controllers
 
         // PUT: api/workorders/{id}/status/start
         [HttpPut("{id}/status/start")]
+        [Authorize(Roles = "Admin,Manager,Agent")]
         public async Task<IActionResult> StartWork(Guid id)
         {
             var order = await _context.WorkOrders.FindAsync(id);
@@ -132,6 +135,7 @@ namespace OpsFlow.Api.Controllers
 
         // PUT: api/workorders/{id}/status/complete
         [HttpPut("{id}/status/complete")]
+        [Authorize(Roles = "Admin,Manager,Agent")]
         public async Task<IActionResult> Complete(Guid id)
         {
             var order = await _context.WorkOrders.FindAsync(id);
