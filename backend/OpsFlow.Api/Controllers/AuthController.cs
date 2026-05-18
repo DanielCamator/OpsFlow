@@ -27,6 +27,7 @@ namespace OpsFlow.Api.Controllers
             public string Password { get; set; } = string.Empty;
         }
 
+        // POST: api/auth/login
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
