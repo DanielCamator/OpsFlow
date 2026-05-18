@@ -6,9 +6,7 @@ import { LoginView } from './views/LoginView';
 import { WorkOrdersView } from './views/WorkOrdersView';
 import { CreateWorkOrderView } from './views/CreateWorkOrderView';
 import { WorkOrderDetailView } from './views/WorkOrderDetailView';
-
-
-const DashboardView = () => <div className="text-slate-300">Dashboard metrics go here</div>;
+import { DashboardView } from './views/DashboardView';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
     const { token } = useAuth();
