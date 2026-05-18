@@ -1,53 +1,28 @@
-import { useEffect, useState } from "react";
-import "./App.css";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-type Status = "loading" | "success" | "error";
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
-export default function App() {
-  const [message, setMessage] = useState<string>("");
-  const [status, setStatus] = useState<Status>("loading");
-
-  useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL ?? "";
-
-    fetch(`${apiUrl}/api/hello`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json() as Promise<{ message: string }>;
-      })
-      .then((data) => {
-        setMessage(data.message);
-        setStatus("success");
-      })
-      .catch(() => {
-        setMessage("Could not reach the backend.");
-        setStatus("error");
-      });
-  }, []);
-
+function App() {
   return (
-    <main className="container">
-      <div className="card">
-        <div className={`dot dot--${status}`} />
-
-        {status === "loading" && (
-          <p className="label">Connecting to backend…</p>
-        )}
-
-        {status === "success" && (
-          <>
-            <h1 className="message">{message}</h1>
-            <p className="label">API responded successfully ✓</p>
-          </>
-        )}
-
-        {status === "error" && (
-          <>
-            <h1 className="message error">{message}</h1>
-            <p className="label">Make sure the backend is running.</p>
-          </>
-        )}
-      </div>
-    </main>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <div className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl font-bold text-slate-100">OpsFlow Frontend</h1>
+            <p className="text-slate-400">Base architecture ready. Everything is in order.</p>
+          </div>
+        </div>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
+
+export default App;
