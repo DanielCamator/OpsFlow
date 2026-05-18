@@ -5,7 +5,9 @@ import { API_URL } from '../config';
 
 const SEEDED_USERS = [
     { email: 'admin@opsflow.com', pass: 'admin123', role: 'Admin', color: 'border-cyan-500/30 text-cyan-400' },
-    { email: 'agent@opsflow.com', pass: 'agent123', role: 'Agent', color: 'border-purple-500/30 text-purple-400' },
+    { email: 'manager@opsflow.com', pass: 'manager123', role: 'Manager', color: 'border-blue-500/30 text-blue-400' },
+    { email: 'agent1@opsflow.com', pass: 'agent123', role: 'Agent1', color: 'border-purple-500/30 text-purple-400' },
+    { email: 'agent2@opsflow.com', pass: 'agent123', role: 'Agent2', color: 'border-purple-500/30 text-purple-400' },
     { email: 'viewer@opsflow.com', pass: 'viewer123', role: 'Viewer', color: 'border-slate-500/30 text-slate-400' },
 ];
 
